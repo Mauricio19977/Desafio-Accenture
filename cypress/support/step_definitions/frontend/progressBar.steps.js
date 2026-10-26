@@ -28,4 +28,5 @@ When('reseto a barra de progresso', () => {
 Then('a barra de progresso deve voltar para 0%', () => {
   ProgressBarPage.elements.barra().should('have.attr', 'aria-valuenow', '0').and('have.text', '0%');
   ProgressBarPage.elements.botaoStartStop().should('have.text', 'Start');
+  ProgressBarPage.validarQueEstaParada();
 });

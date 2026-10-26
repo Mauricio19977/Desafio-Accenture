@@ -67,7 +67,7 @@ Um hook `After` **exclui o usuário criado** em cada cenário (`DELETE /Account/
 | Browser Windows | [`browser_windows.feature`](cypress/e2e/frontend/browser_windows.feature) | Clique em *New Window*. Valida que uma janela (não uma aba) foi aberta para `/sample`, valida a mensagem *"This is a sample page"* e fecha a janela, voltando à página de origem ([ver decisão](#browser-windows-múltiplas-janelas)) |
 | Web Tables | [`web_tables.feature`](cypress/e2e/frontend/web_tables.feature) | Cria, edita e deleta um registro, validando cada coluna |
 | Web Tables — **bônus** | [`web_tables.feature`](cypress/e2e/frontend/web_tables.feature) (`@bonus`) | Cria **12 registros dinâmicos** (quantidade parametrizada no Gherkin), valida todos, exclui todos e confirma que só restaram os 3 registros originais |
-| Progress Bar | [`progress_bar.feature`](cypress/e2e/frontend/progress_bar.feature) | Start, parada **antes dos 25%**, validação de que a barra realmente parou com valor `≤ 25%`, novo Start até 100% e Reset (volta a 0% e o botão volta a ser *Start*) |
+| Progress Bar | [`progress_bar.feature`](cypress/e2e/frontend/progress_bar.feature) | Start, parada **antes dos 25%**, validação de que a barra realmente parou com valor `≤ 25%`, novo Start até 100% e Reset (volta a 0%, fica parada e o botão volta a ser *Start*) |
 | Sortable | [`sortable.feature`](cypress/e2e/frontend/sortable.feature) | Usa **somente drag and drop**: embaralha a lista e depois a ordena em **ordem crescente** (One → Six) |
 
 ---
@@ -118,7 +118,7 @@ Um hook `After` **exclui o usuário criado** em cada cenário (`DELETE /Account/
 - **Independência entre cenários:** a API limpa o usuário criado e a UI parte sempre da home.
 - **Estabilidade:**
   - os domínios de anúncios são bloqueados (`blockHosts`), porque eles sobrepõem elementos e deixam as páginas lentas;
-  - não há `cy.wait` fixo para sincronizar. A única espera fixa (500 ms) é proposital: ela prova que a progress bar *parou*;
+  - não há `cy.wait` fixo para sincronizar. A única espera fixa (500 ms) é proposital e aparece só na Progress Bar: ela prova que a barra *parou*;
   - as asserções aguardam o estado esperado;
   - há 1 retry em `cypress run`, como rede de segurança.
 
@@ -186,6 +186,8 @@ A barra avança cerca de 1% a cada 100 ms. O teste espera a barra passar de 15% 
 - o valor ficou **> 0 e ≤ 25**;
 - a barra **realmente parou**: o valor não muda após 500 ms.
 
+A mesma verificação é feita ao chegar em 100%, **antes** de clicar em Reset, e depois do Reset, em 0%. Isso contorna o [bug 3](#bug-3--reset-da-progress-bar-logo-ao-chegar-em-100-faz-a-barra-recomeçar).
+
 ### Sortable: ordem crescente
 
 Na versão atual do demoqa a lista já carrega em ordem crescente. Para que a ordenação seja de fato exercitada, o cenário primeiro **embaralha a lista via drag and drop**, na mesma ordem do print do desafio (`Six, Two, One, Four, Five, Three`). Depois ordena de forma crescente.
@@ -203,7 +205,7 @@ Na versão atual do demoqa a lista já carrega em ordem crescente. Para que a or
 
 ## Bugs encontrados no demoqa
 
-Durante a automação foram encontrados dois defeitos na versão atual do site. Cada um tem um cenário `@bug` que o reproduz (`npm run test:bugs`). Esses cenários ficam fora da execução padrão, para que a suíte principal continue verde. Quando o defeito for corrigido, o cenário passa a passar sem nenhuma alteração.
+Durante a automação foram encontrados três defeitos na versão atual do site. Os bugs 1 e 2 têm um cenário `@bug` que os reproduz (`npm run test:bugs`). Esses cenários ficam fora da execução padrão, para que a suíte principal continue verde. Quando o defeito for corrigido, o cenário passa a passar sem nenhuma alteração.
 
 ### Bug 1 — botão *Close* do popup do Practice Form não fecha
 
@@ -223,6 +225,16 @@ Durante a automação foram encontrados dois defeitos na versão atual do site. 
 | **Esperado** | Apenas o registro escolhido é removido |
 | **Obtido** | **Todos** os registros adicionados na sessão somem; só restam os originais (menos o excluído) |
 | **Impacto no bônus** | O passo "deletar todos os novos registros" exclui pelo botão de delete cada registro que ainda está na tabela. Hoje um único clique já remove todos; com o bug corrigido serão 12 cliques. O resultado validado é o mesmo: nenhum registro criado na tabela e os 3 originais intactos |
+
+### Bug 3 — Reset da Progress Bar logo ao chegar em 100% faz a barra recomeçar
+
+| | |
+|---|---|
+| **Passos** | Progress Bar → *Start* → clicar em *Reset* assim que a barra mostrar 100% |
+| **Esperado** | A barra volta a 0% e fica parada |
+| **Obtido** | A barra volta a 0% e **recomeça sozinha** até 100% |
+| **Causa** | No código do componente, o timer só é cancelado quando o contador passa de 100 (`runningTime > 100`), um tick (100 ms) depois de a tela já mostrar 100% e o botão Reset. O `handleReset` não cancela o timer |
+| **Como foi encontrado** | O teste passava localmente e falhou no GitHub Actions, onde o clique caiu nessa janela de 100 ms. Não há cenário `@bug` porque a reprodução depende de clicar dentro dessa janela, o que não é determinístico |
 
 ---
 

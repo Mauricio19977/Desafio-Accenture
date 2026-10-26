@@ -46,6 +46,9 @@ class ProgressBarPage {
   aguardarConclusao() {
     this.elements.barra({ timeout: 20000 }).should('have.attr', 'aria-valuenow', '100').and('have.text', '100%');
     this.elements.botaoReset().should('be.visible').and('have.text', 'Reset');
+    // O demoqa só cancela o timer um tick depois de exibir 100%: um Reset nesse intervalo
+    // zera a barra, mas ela recomeça sozinha. Só resetamos com a barra de fato parada.
+    this.validarQueEstaParada();
   }
 
   resetar() {
