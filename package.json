@@ -1,0 +1,47 @@
+{
+  "name": "desafio-qa-automation-accenture",
+  "version": "1.0.0",
+  "scripts": {
+    "cy:open": "cypress open",
+    "test": "cypress run",
+    "test:api": "cypress run --expose tags=@api",
+    "test:front": "cypress run --expose \"tags=@frontend and not @bug\"",
+    "test:bonus": "cypress run --expose tags=@bonus",
+    "test:bugs": "cypress run --expose tags=@bug",
+    "test:chrome": "cypress run --browser chrome"
+  },
+  "keywords": [
+    "cypress",
+    "cucumber",
+    "bdd",
+    "qa",
+    "automation",
+    "demoqa"
+  ],
+  "author": "Mauricio Avila",
+  "description": "Desafio QA Automation Accenture - testes de API e Frontend no demoqa.com com Cypress + Cucumber (BDD)",
+  "devDependencies": {
+    "@badeball/cypress-cucumber-preprocessor": "^28.0.1",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
+    "@faker-js/faker": "^10.6.0",
+    "cypress": "^16.2.0",
+    "cypress-plugin-api": "^2.12.3",
+    "esbuild": "^0.28.2"
+  },
+  "cypress-cucumber-preprocessor": {
+    "stepDefinitions": "cypress/support/step_definitions/**/*.js",
+    "filterSpecs": true,
+    "omitFiltered": true,
+    "html": {
+      "enabled": true,
+      "output": "reports/cucumber-report.html"
+    },
+    "json": {
+      "enabled": true,
+      "output": "reports/cucumber-report.json"
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
